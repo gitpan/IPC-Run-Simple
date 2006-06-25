@@ -1,11 +1,11 @@
+use lib '/home/sfink/sfinkware/IPC-Run-Simple/lib';
+
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl IPC-Run-Simple.t'
 
 #########################
 
-# change 'tests => 1' to 'tests => last_test_to_print';
-
-use Test::Simple tests => 8;
+use Test::Simple tests => 10;
 use IPC::Run::Simple qw(:all);
 ok(1); # If we made it this far, we're ok.
 
@@ -30,3 +30,9 @@ ok($ret, "Failing command with allowed exit val");
 
 $ret = run(command => [ "false" ], allowed => [ 2 ]);
 ok(! $ret, "Failing command with disallowed exit val");
+
+$ret = run(command => "false", allowed => [ 1 ]);
+ok($ret, "Passing in command as a string");
+
+$ret = run(command => "echo Hello", allowed => [ 1 ]);
+ok(! $ret, "Successful command that was not supposed to succeed");

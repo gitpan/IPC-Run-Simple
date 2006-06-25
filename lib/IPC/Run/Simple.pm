@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 
 our $ERR;
 our $Fatal = 0;
@@ -38,9 +38,21 @@ sub import {
 sub run {
     die "no arguments" if @_ == 0;
 
+    # Wacky argument handling to allow either a list of arguments to
+    # be passed in (a la system()), or key=>value pairs (the
+    # difference is detectable because one of the values must be an
+    # array ref.)
     my %options;
-    if (@_ > 1 && ref($_[1])) {
+    if ((@_ % 2) == 0) {
         %options = @_;
+        if (grep { ref($_) } values %options) {
+            my $cmd = $options{command};
+            die "no command given" if ! defined $cmd;
+            $cmd = [ $cmd ] if ! ref($cmd);
+            $options{command} = $cmd;
+        } else {
+            %options = (command => \@_ );
+        }
     } else {
         $options{command} = \@_;
     }
@@ -56,7 +68,20 @@ sub run {
     local $SIG{__WARN__} = sub { $ERR = shift; };
 
     system(@{ $options{command} });
-    return 1 if ($? == 0);
+
+    # Handle a successful return. This isn't completely
+    # straightforward, because the caller might not allow a zero
+    # return value.
+    if ($? == 0) {
+        if (defined $options{allowed} &&
+            ! grep { $_ == 0 } @{ $options{allowed} })
+        {
+            $ERR = "child exited with value 0";
+            die $ERR if $Fatal;
+            return 0;
+        }
+        return "0 but true";
+    }
 
     if ($? == -1) {
         $ERR ||= "failed to run external command ($!)";

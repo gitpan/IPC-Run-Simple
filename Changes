@@ -1,3 +1,9 @@
+2006-06-25    <sfink> 1.1
+
+	* Allow passing command as string when using key=>value syntax
+	* Handle the case where the 'allow' option is given, but zero is
+	  not an allowed return value, and the command succeeds.
+
 Revision history for Perl extension IPC::Run::Simple.
 
 1.0  Sun Jun 25 08:51:40 2006
