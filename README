@@ -1,0 +1,28 @@
+IPC-Run-Simple version 1.0
+==========================
+
+This module is intended to be a very simple, straightforward wrapper
+around the C<system()> call to make it behave more like other builtins.
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+This does not depend on any other modules or libraries.
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2006 by Steve Fink
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.5 or,
+at your option, any later version of Perl 5 you may have available.
+
+
