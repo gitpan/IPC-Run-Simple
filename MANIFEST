@@ -4,5 +4,7 @@ MANIFEST
 README
 t/IPC-Run-Simple.t
 t/fatal.t
+t/pod.t
+t/pod-coverage.t
 lib/IPC/Run/Simple.pm
 META.yml                                 Module meta-data (added by MakeMaker)
