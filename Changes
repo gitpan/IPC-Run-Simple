@@ -1,3 +1,9 @@
+2006-07-11    <sfink> 1.3
+
+	* Fixed bug reported by Ricardo SIGNES - multiple packages
+	  importing module would end up sharing a fatality setting.
+	* Added Ricardo's multifatal.t test
+
 2006-06-27    <sfink> 1.2
 
 	* Added pod.t and pod-coverage.t
@@ -13,4 +19,3 @@ Revision history for Perl extension IPC::Run::Simple.
 1.0  Sun Jun 25 08:51:40 2006
 	- original version; created by h2xs 1.23 with options
 		-A -X -f -n IPC::Run::Simple -v 1.0 -b 5.6.0
-

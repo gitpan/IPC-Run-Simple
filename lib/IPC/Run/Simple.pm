@@ -4,10 +4,27 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '1.2';
+our $VERSION = '1.3';
 
 our $ERR;
 our $Fatal = 0;
+
+our @EXPORT = qw(run);
+
+sub _export_sub {
+    my ($callpkg, $subname, $thispkg, $fatal) = @_;
+
+    no strict 'refs';
+
+    my $sub;
+    if ($subname eq 'run') {
+        $sub = $fatal ? \&_run_fatal : \&_run_nonfatal;
+    } else {
+        $sub = \&{"$thispkg\::$subname"};
+    }
+
+    *{"$callpkg\::$subname"} = $sub;
+}
 
 sub import {
     my $pkg = shift;
@@ -15,19 +32,23 @@ sub import {
 
     no strict 'refs';
 
-    foreach ('run', @_) {
+    $Fatal = grep { $_ eq ':Fatal' } @_;
+
+    foreach (@EXPORT, @_) {
         if (/^\w/) {
-            *{"$callpkg\::$_"} = \&{"$pkg\::$_"};
+            _export_sub($callpkg, $_, $pkg, $Fatal);
         } elsif (/^&(.*)/) {
-            *{"$callpkg\::$1"} = \&{"$pkg\::$1"};
+            _export_sub($callpkg, $1, $pkg, $Fatal);
         } elsif (/^$(.*)/) {
             *{"$callpkg\::$1"} = \${"$pkg\::$1"};
         } elsif (/^:(.*)/) {
             if ($1 eq 'all') {
-                *{"$callpkg\::$_"} = \&{"$pkg\::$_"} foreach qw(run);
+                _export_sub($callpkg, $_, $pkg, $Fatal) foreach qw(run);
                 *{"$callpkg\::$_"} = \${"$pkg\::$_"} foreach qw(ERR);
             } elsif ($1 eq 'Fatal') {
-                $Fatal = 1;
+                # Already handled
+            } else {
+                die "Unrecognized import tag '$1'";
             }
         } else {
             die "Unrecognized import '$_'";
@@ -100,6 +121,16 @@ sub run {
     return;
 }
 
+sub _run_fatal {
+    local $Fatal = 1;
+    run(@_);
+}
+
+sub _run_nonfatal {
+    local $Fatal = 0;
+    run(@_);
+}
+
 1;
 __END__
 
@@ -170,6 +201,14 @@ export both C<run()> and C<$ERR>.
 
 The C<:Fatal> tag will cause all errors to be fatal.
 
+=head1 BUGS AND LIMITATIONS
+
+The C<$ERR> variable is shared by all packages. So if package A calls
+C<run("a")>, which sets C<$ERR>, and then calls C<b_func()>, which is
+defined in package B and calls C<run("b")>, then after C<b_func()>
+returns C<$ERR> will no longer be set to the value resulting from the
+C<run("a")>; its value will have been overwritten by the call to
+C<run("b")>..
 
 =head1 SEE ALSO
 
@@ -190,6 +229,9 @@ All of the above have been tested on Windows, unlike this module.
 =head1 AUTHOR
 
 Steve Fink E<lt>sfink@cpan.orgE<gt>
+
+Ricardo SIGNES pointed out a bug resulting from misuse of a
+package-scoped C<$Fatal> variable.
 
 =head1 COPYRIGHT AND LICENSE
 
